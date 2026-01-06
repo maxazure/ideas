@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
 from .database import init_db
 from .routers import ideas, agent
+from .auth import verify_api_key
 
 
 @asynccontextmanager
@@ -15,7 +16,8 @@ app = FastAPI(
     title="Idea Execution Loop",
     description="A system for executing ideas with AI Agent collaboration",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    dependencies=[Depends(verify_api_key)]
 )
 
 app.include_router(ideas.router, prefix="/api/ideas", tags=["ideas"])
