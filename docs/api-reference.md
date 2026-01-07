@@ -502,3 +502,107 @@ POST /api/agent/fail/{idea_id}
 9. (可选) Agent 继续 → POST /api/agent/start/{id}
 10. Agent 完成/失败 → POST /api/agent/complete/{id} 或 fail/{id}
 ```
+
+---
+
+## MCP 服务器安装
+
+本项目提供了 MCP 服务器，可以直接在 Claude Desktop 中使用。
+
+### 安装方式
+
+#### 方式 1: 从源码安装
+
+```bash
+cd /path/to/ideas/mcp-server
+python -m build
+pip install dist/ideas_mcp-1.0.0-py3-none-any.whl
+```
+
+#### 方式 2: 从源码运行
+
+```bash
+cd /path/to/ideas/mcp-server
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Claude Desktop 配置
+
+编辑配置文件：
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+#### 方式 1: pip 包安装后
+
+```json
+{
+  "mcpServers": {
+    "ideas": {
+      "command": "/full/path/to/python",
+      "args": ["-m", "ideas_mcp.server"]
+    }
+  }
+}
+```
+
+#### 方式 2: 源码运行
+
+```json
+{
+  "mcpServers": {
+    "ideas": {
+      "command": "/full/path/to/ideas/mcp-server/venv/bin/python",
+      "args": ["-m", "ideas_mcp.server"]
+    }
+  }
+}
+```
+
+### 可用 MCP 工具
+
+安装完成后，Claude 可以直接使用以下工具：
+
+| 工具 | 描述 |
+|------|------|
+| `idea_create` | 创建新想法 |
+| `idea_list` | 列出所有想法 |
+| `idea_get` | 获取想法详情 |
+| `idea_update` | 更新想法内容 |
+| `idea_execute` | 标记执行 |
+| `idea_cancel` | 取消执行 |
+| `idea_reply` | 添加用户消息 |
+| `agent_poll` | 轮询任务 |
+| `agent_claim` | 领取任务 |
+| `agent_start` | 开始执行 |
+| `agent_feedback` | 提交反馈 |
+| `agent_ask` | 请求用户指示 |
+| `agent_complete` | 完成任务 |
+| `agent_fail` | 标记失败 |
+
+### 使用示例
+
+在 Claude 中直接对话：
+
+```
+创建一个新想法：学习 Rust 编程语言
+```
+
+```
+列出所有待办的想法
+```
+
+```
+执行想法 #1
+```
+
+```
+查看想法 #3 的完整消息历史
+```
+
+### 文档位置
+
+- MCP 服务器 README: `mcp-server/README.md`
+- Claude Desktop 配置路径: `~/Library/Application Support/Claude/claude_desktop_config.json`
