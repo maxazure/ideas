@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新建想法 - Ideas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        textarea:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen select-none">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-md">
+        <div class="px-4 py-3 flex justify-between items-center max-w-2xl mx-auto">
+            <button onclick="goBack()" class="p-2 -ml-2 rounded-full hover:bg-white/20 active:scale-95 transition-transform flex items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span class="ml-1">返回</span>
+            </button>
+            <h1 class="text-lg font-semibold" id="page-title">新建想法</h1>
+            <button onclick="saveIdea()" class="p-2 -mr-2 font-medium hover:bg-white/20 active:scale-95 transition-transform rounded-lg" id="save-btn">
+                保存
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-16 px-4 max-w-2xl mx-auto min-h-screen">
+        <div class="py-6">
+            <textarea
+                id="idea-content"
+                class="w-full min-h-[300px] p-4 text-lg text-gray-800 placeholder-gray-400 bg-white border border-gray-200 rounded-xl resize-none focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all"
+                placeholder="你有什么新想法？记录下来吧..."
+            ></textarea>
+
+            <!-- Edit Mode Actions -->
+            <div id="edit-actions" class="hidden mt-6 p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-500">状态</span>
+                    <span id="idea-status" class="text-sm font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-600">草稿</span>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-500">创建时间</span>
+                    <span id="created-time" class="text-sm text-gray-600">-</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">更新时间</span>
+                    <span id="updated-time" class="text-sm text-gray-600">-</span>
+                </div>
+                <hr class="my-4 border-gray-100">
+                <button onclick="confirmCancel()" class="w-full py-3 text-red-500 font-medium bg-red-50 rounded-xl hover:bg-red-100 active:scale-[0.98] transition-all">
+                    取消此想法
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm">
+        操作成功
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="hidden fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+        <div class="flex flex-col items-center">
+            <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <span class="mt-2 text-gray-500 text-sm">保存中...</span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const token = localStorage.getItem('ideas_token');
+        let currentId = null;
+        let currentIdea = null;
+
+        // Check auth
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        // Get idea ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        currentId = urlParams.get('id');
+
+        async function init() {
+            // Verify auth
+            try {
+                const res = await fetch('/auth/verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Auth failed');
+            } catch (e) {
+                localStorage.removeItem('ideas_token');
+                window.location.href = '/login';
+                return;
+            }
+
+            if (currentId) {
+                // Edit mode
+                document.getElementById('page-title').textContent = '编辑想法';
+                document.title = '编辑想法 - Ideas';
+                document.getElementById('edit-actions').classList.remove('hidden');
+                await loadIdea();
+            }
+
+            // Auto focus textarea
+            document.getElementById('idea-content').focus();
+        }
+
+        async function api(endpoint, method = 'GET', body = null) {
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            const opts = { method, headers };
+            if (body) opts.body = JSON.stringify(body);
+
+            try {
+                const res = await fetch(endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`, opts);
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return null;
+                }
+                if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
+                return await res.json();
+            } catch (err) {
+                showToast(err.message || '操作失败', true);
+                console.error(err);
+                return null;
+            }
+        }
+
+        async function loadIdea() {
+            const data = await api(`/ideas/${currentId}`);
+            if (data) {
+                currentIdea = data;
+                document.getElementById('idea-content').value = data.content;
+                document.getElementById('idea-status').textContent = getStatusLabel(data.status);
+                document.getElementById('idea-status').className = `text-sm font-medium px-3 py-1 rounded-full ${getStatusColor(data.status)}`;
+                document.getElementById('created-time').textContent = formatTime(data.created_at);
+                document.getElementById('updated-time').textContent = formatTime(data.updated_at || data.created_at);
+            }
+        }
+
+        async function saveIdea() {
+            const content = document.getElementById('idea-content').value.trim();
+            if (!content) {
+                showToast('请输入想法内容', true);
+                return;
+            }
+
+            const btn = document.getElementById('save-btn');
+            const loading = document.getElementById('loading');
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+
+            let res;
+            if (currentId) {
+                res = await api(`/ideas/${currentId}`, 'PUT', { content });
+            } else {
+                res = await api('/ideas', 'POST', { content });
+            }
+
+            loading.classList.add('hidden');
+            btn.disabled = false;
+
+            if (res) {
+                showToast('保存成功');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            }
+        }
+
+        async function confirmCancel() {
+            if (!currentId) return;
+            if (!confirm('确定要取消这个想法吗？此操作不可撤销。')) return;
+
+            const res = await api(`/ideas/${currentId}/cancel`, 'POST');
+            if (res) {
+                showToast('想法已取消');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            }
+        }
+
+        function goBack() {
+            const content = document.getElementById('idea-content').value.trim();
+            const originalContent = currentIdea ? currentIdea.content : '';
+
+            if (content && content !== originalContent) {
+                if (!confirm('你有未保存的更改，确定要返回吗？')) {
+                    return;
+                }
+            }
+            window.location.href = '/';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'draft': 'bg-gray-100 text-gray-600',
+                'pending': 'bg-yellow-50 text-yellow-600',
+                'claimed': 'bg-purple-50 text-purple-600',
+                'executing': 'bg-blue-50 text-blue-600',
+                'waiting_user': 'bg-orange-50 text-orange-600',
+                'waiting_agent': 'bg-indigo-50 text-indigo-600',
+                'completed': 'bg-green-50 text-green-600',
+                'failed': 'bg-red-50 text-red-600',
+                'cancelled': 'bg-gray-100 text-gray-400'
+            };
+            return colors[status] || 'bg-gray-100 text-gray-600';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'draft': '草稿',
+                'pending': '待处理',
+                'claimed': '已认领',
+                'executing': '执行中',
+                'waiting_user': '等待回复',
+                'waiting_agent': '等待处理',
+                'completed': '已完成',
+                'failed': '失败',
+                'cancelled': '已取消'
+            };
+            return labels[status] || status;
+        }
+
+        function formatTime(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300 pointer-events-none z-50 text-sm ${isError ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'}`;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        }
+
+        // Handle back button
+        window.addEventListener('popstate', goBack);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

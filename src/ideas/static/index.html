@@ -101,9 +101,9 @@
     </main>
 
     <!-- FAB -->
-    <button onclick="app.openEditor()" class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transform transition-transform hover:scale-105 active:scale-95 z-30">
+    <a href="/add" class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transform transition-transform hover:scale-105 active:scale-95 z-30">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-    </button>
+    </a>
 
     <!-- Editor Modal (Bottom Sheet on Mobile) -->
     <div id="editor-modal" class="hidden fixed inset-0 z-50">
@@ -217,7 +217,7 @@
                 empty.classList.add('hidden');
                 list.classList.remove('hidden');
                 list.innerHTML = this.state.ideas.map((idea, index) => `
-                    <li onclick="app.openEditor(${idea.id})" 
+                    <li onclick="window.location.href='/add?id=${idea.id}'"
                         class="bg-white rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 active:scale-[0.98] transition-all cursor-pointer fade-enter"
                         style="animation-delay: ${index * 50}ms; animation-fill-mode: forwards;">
                         <div class="flex justify-between items-start mb-2">

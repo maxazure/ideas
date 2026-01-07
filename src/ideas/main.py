@@ -58,3 +58,12 @@ async def serve_login():
     if login_file.exists():
         return FileResponse(login_file)
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/add")
+async def serve_add():
+    """Serve the add/edit idea page."""
+    add_file = STATIC_DIR / "add.html"
+    if add_file.exists():
+        return FileResponse(add_file)
+    return FileResponse(STATIC_DIR / "index.html")
