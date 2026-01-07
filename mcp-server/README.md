@@ -4,7 +4,28 @@ MCP (Model Context Protocol) server for the Ideas Execution Loop System. This al
 
 ## Installation
 
-### 1. Install Dependencies
+### Option 1: Install as pip package (Recommended)
+
+```bash
+# Build from source
+cd /path/to/ideas/mcp-server
+pip install build
+python -m build
+
+# Install the wheel
+pip install dist/ideas_mcp-1.0.0-py3-none-any.whl
+
+# Or install from source
+pip install dist/ideas_mcp-1.0.0.tar.gz
+```
+
+The package provides the `ideas-mcp` command:
+
+```bash
+ideas-mcp --help
+```
+
+### Option 2: From source (Development)
 
 ```bash
 cd mcp-server
@@ -13,27 +34,40 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Claude Desktop
+## Configure Claude Desktop
 
-Add to your Claude Desktop config file:
-
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+### Option 1: If installed as pip package
 
 ```json
 {
   "mcpServers": {
     "ideas": {
-      "command": "/path/to/ideas/mcp-server/venv/bin/python",
-      "args": ["/path/to/ideas/mcp-server/server.py"]
+      "command": "/full/path/to/venv/bin/python",
+      "args": ["-m", "ideas_mcp.server"]
     }
   }
 }
 ```
 
-Replace `/path/to/ideas` with your actual path.
+### Option 2: From source
 
-### 3. Restart Claude Desktop
+```json
+{
+  "mcpServers": {
+    "ideas": {
+      "command": "/full/path/to/ideas/mcp-server/venv/bin/python",
+      "args": ["-m", "ideas_mcp.server"]
+    }
+  }
+}
+```
+
+**Config file locations:**
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+### Restart Claude Desktop
 
 After updating the config, restart Claude Desktop to load the MCP server.
 
@@ -87,12 +121,41 @@ The MCP server connects to: `https://ideas.u.jayliu.co.nz`
 
 ## Development
 
-Test the server locally:
+### Test the server locally
 
 ```bash
 cd mcp-server
 source venv/bin/activate
-mcp dev server.py
+mcp dev src/ideas_mcp/server.py
 ```
 
 This opens the MCP Inspector for debugging.
+
+### Build new package version
+
+```bash
+cd mcp-server
+rm -rf dist build *.egg-info
+python -m build
+pip install dist/ideas_mcp-*.whl --force-reinstall
+```
+
+## Package Structure
+
+```
+mcp-server/
+├── pyproject.toml              # Package configuration
+├── src/ideas_mcp/
+│   ├── __init__.py
+│   └── server.py              # MCP server with 14 tools
+├── README.md
+└── dist/
+    ├── ideas_mcp-1.0.0-py3-none-any.whl
+    └── ideas_mcp-1.0.0.tar.gz
+```
+
+## Requirements
+
+- Python 3.10+
+- mcp>=1.0.0
+- httpx>=0.28.0
