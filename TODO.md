@@ -21,6 +21,13 @@
 - [x] 添加 API 认证机制 - 完成时间: 2026-01-07
   - 可选 API Key 认证
   - 通过环境变量 API_KEY 和 API_KEY_ENABLED 配置
+- [x] 添加 Web 前端界面 - 完成时间: 2026-01-08
+  - JWT 用户认证（30天有效期）
+  - 移动端优先的响应式设计
+  - 想法的增删改查功能
+  - 紫色渐变主题 (#667eea → #764ba2)
+  - 登录页面（glassmorphism 风格）
+  - 底部弹出式编辑器
 
 ## 💡 优化建议 (未来可选)
 - [ ] 添加分页支持 - 提出时间: 2026-01-07
@@ -29,9 +36,13 @@
 
 ## 📚 使用说明
 
-### 生产环境
-- API 地址: https://ideas.u.jayliu.co.nz
-- API 文档: https://ideas.u.jayliu.co.nz/docs
+### Web 应用
+- 访问地址: https://ideas.u.jayliu.co.nz
+- 登录凭据: admin / ideas2026
+- 支持手机浏览器访问
+
+### API 文档
+- Swagger UI: https://ideas.u.jayliu.co.nz/docs
 
 ### 本地开发
 ```bash
