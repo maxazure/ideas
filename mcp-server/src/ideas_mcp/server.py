@@ -306,5 +306,10 @@ def agent_fail(idea_id: int, reason: str) -> str:
 # Main Entry Point
 # ============================================================================
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the MCP server."""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

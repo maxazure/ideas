@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ideas-mcp"
+version = "1.0.0"
+description = "MCP server for Ideas Execution Loop System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "httpx>=0.28.0",
+]
+
+[project.scripts]
+ideas-mcp = "ideas_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ideas_mcp"]
