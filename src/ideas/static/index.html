@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ideas - 我的想法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Scrollbar for hidden look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Smooth fade transitions */
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+        
+        /* Modal transitions */
+        .modal-enter {
+            opacity: 0;
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transition: opacity 200ms ease-out;
+        }
+        .sheet-enter {
+            transform: translateY(100%);
+        }
+        .sheet-enter-active {
+            transform: translateY(0);
+            transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Tap highlight removal */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen pb-24 select-none">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-md transition-all duration-300" id="header">
+        <div class="px-4 py-3 flex justify-between items-center max-w-2xl mx-auto">
+            <h1 class="text-xl font-bold tracking-tight">我的想法</h1>
+            <div class="flex items-center space-x-4">
+                <button onclick="app.refresh()" class="p-2 rounded-full hover:bg-white/20 active:scale-95 transition-transform">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+                <button onclick="app.logout()" class="p-2 rounded-full hover:bg-white/20 active:scale-95 transition-transform">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 px-4 max-w-2xl mx-auto min-h-screen" id="main-content">
+        <!-- Ideas List -->
+        <ul id="idea-list" class="space-y-4">
+            <!-- Loading Skeleton -->
+            <li class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                <div class="flex justify-between items-center">
+                    <div class="h-3 bg-gray-200 rounded w-1/4"></div>
+                    <div class="h-5 bg-gray-200 rounded-full w-16"></div>
+                </div>
+            </li>
+            <li class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div class="flex justify-between items-center">
+                    <div class="h-3 bg-gray-200 rounded w-1/4"></div>
+                    <div class="h-5 bg-gray-200 rounded-full w-16"></div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+            <div class="bg-indigo-50 p-4 rounded-full mb-4">
+                <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+            </div>
+            <p class="text-gray-500 text-lg">还没有任何想法</p>
+            <p class="text-gray-400 text-sm mt-1">点击右下角按钮开始记录</p>
+        </div>
+    </main>
+
+    <!-- FAB -->
+    <button onclick="app.openEditor()" class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transform transition-transform hover:scale-105 active:scale-95 z-30">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    </button>
+
+    <!-- Editor Modal (Bottom Sheet on Mobile) -->
+    <div id="editor-modal" class="hidden fixed inset-0 z-50">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0" id="editor-backdrop" onclick="app.closeEditor()"></div>
+        
+        <!-- Sheet -->
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform translate-y-full transition-transform duration-300 md:relative md:top-20 md:mx-auto md:max-w-lg md:rounded-2xl md:translate-y-0 md:opacity-0 md:scale-95" id="editor-sheet">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <button onclick="app.closeEditor()" class="text-gray-400 hover:text-gray-600 p-2 -ml-2">取消</button>
+                <h3 class="font-semibold text-gray-800" id="editor-title">新建想法</h3>
+                <button onclick="app.saveIdea()" class="text-indigo-600 font-medium hover:text-indigo-700 p-2 -mr-2" id="save-btn">保存</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <textarea id="idea-content" class="w-full h-40 p-0 text-lg text-gray-800 placeholder-gray-300 border-none focus:ring-0 resize-none bg-transparent" placeholder="你有什么新想法？"></textarea>
+                
+                <div id="edit-actions" class="hidden pt-4 border-t border-gray-50 flex justify-between items-center">
+                   <div class="text-xs text-gray-400" id="last-updated"></div>
+                   <button onclick="app.confirmDelete()" class="text-red-500 text-sm py-2 px-4 rounded-lg bg-red-50 hover:bg-red-100 transition-colors">取消此想法</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm">
+        操作成功
+    </div>
+
+    <!-- Logic -->
+    <script>
+        const API_BASE = '/api';
+        
+        const app = {
+            state: {
+                ideas: [],
+                currentId: null,
+                token: localStorage.getItem('ideas_token')
+            },
+            
+            async init() {
+                if (!this.state.token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Verify auth
+                try {
+                    const res = await fetch('/auth/verify', {
+                        headers: { 'Authorization': `Bearer ${this.state.token}` }
+                    });
+                    if (!res.ok) throw new Error('Auth failed');
+                } catch (e) {
+                    localStorage.removeItem('ideas_token');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                this.loadIdeas();
+            },
+            
+            async api(endpoint, method = 'GET', body = null) {
+                const headers = {
+                    'Authorization': `Bearer ${this.state.token}`,
+                    'Content-Type': 'application/json'
+                };
+                
+                const opts = { method, headers };
+                if (body) opts.body = JSON.stringify(body);
+                
+                try {
+                    const res = await fetch(endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`, opts);
+                    if (res.status === 401) {
+                        window.location.href = '/login';
+                        return null;
+                    }
+                    if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
+                    return await res.json();
+                } catch (err) {
+                    this.showToast(err.message || '操作失败', true);
+                    console.error(err);
+                    return null;
+                }
+            },
+            
+            async loadIdeas() {
+                const list = document.getElementById('idea-list');
+                // Keep skeleton if empty
+                if (list.children.length === 0) {
+                   // skeleton is default in HTML
+                }
+                
+                const data = await this.api('/ideas');
+                if (data) {
+                    this.state.ideas = data;
+                    this.renderList();
+                }
+            },
+            
+            renderList() {
+                const list = document.getElementById('idea-list');
+                const empty = document.getElementById('empty-state');
+                
+                if (this.state.ideas.length === 0) {
+                    list.innerHTML = '';
+                    list.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                
+                empty.classList.add('hidden');
+                list.classList.remove('hidden');
+                list.innerHTML = this.state.ideas.map((idea, index) => `
+                    <li onclick="app.openEditor(${idea.id})" 
+                        class="bg-white rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 active:scale-[0.98] transition-all cursor-pointer fade-enter"
+                        style="animation-delay: ${index * 50}ms; animation-fill-mode: forwards;">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="${this.getStatusColor(idea.status)} text-xs px-2 py-1 rounded-full font-medium tracking-wide">
+                                ${this.getStatusLabel(idea.status)}
+                            </span>
+                            <span class="text-xs text-gray-400 font-medium">${this.timeAgo(idea.created_at)}</span>
+                        </div>
+                        <p class="text-gray-800 text-base leading-relaxed line-clamp-3 font-medium">${this.escapeHtml(idea.content)}</p>
+                    </li>
+                `).join('');
+                
+                // Trigger animations
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.fade-enter').forEach(el => el.classList.add('fade-enter-active'));
+                });
+            },
+            
+            getStatusColor(status) {
+                const colors = {
+                    'draft': 'bg-gray-100 text-gray-600',
+                    'pending': 'bg-yellow-50 text-yellow-600 ring-1 ring-yellow-500/10',
+                    'claimed': 'bg-purple-50 text-purple-600 ring-1 ring-purple-500/10',
+                    'executing': 'bg-blue-50 text-blue-600 ring-1 ring-blue-500/10',
+                    'waiting_user': 'bg-orange-50 text-orange-600 ring-1 ring-orange-500/10',
+                    'waiting_agent': 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-500/10',
+                    'completed': 'bg-green-50 text-green-600 ring-1 ring-green-500/10',
+                    'failed': 'bg-red-50 text-red-600 ring-1 ring-red-500/10',
+                    'cancelled': 'bg-gray-100 text-gray-400 line-through'
+                };
+                return colors[status] || 'bg-gray-100 text-gray-600';
+            },
+            
+            getStatusLabel(status) {
+                const labels = {
+                    'draft': '草稿',
+                    'pending': '待处理',
+                    'claimed': '已认领',
+                    'executing': '执行中',
+                    'waiting_user': '等待回复',
+                    'waiting_agent': '等待处理',
+                    'completed': '已完成',
+                    'failed': '失败',
+                    'cancelled': '已取消'
+                };
+                return labels[status] || status;
+            },
+            
+            openEditor(id = null) {
+                this.state.currentId = id;
+                const modal = document.getElementById('editor-modal');
+                const sheet = document.getElementById('editor-sheet');
+                const backdrop = document.getElementById('editor-backdrop');
+                const title = document.getElementById('editor-title');
+                const textarea = document.getElementById('idea-content');
+                const editActions = document.getElementById('edit-actions');
+                const saveBtn = document.getElementById('save-btn');
+                
+                modal.classList.remove('hidden');
+                
+                // Reset state
+                textarea.value = '';
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存';
+                
+                if (id) {
+                    const idea = this.state.ideas.find(i => i.id === id);
+                    if (idea) {
+                        textarea.value = idea.content;
+                        title.textContent = '编辑想法';
+                        editActions.classList.remove('hidden');
+                        document.getElementById('last-updated').textContent = '更新于 ' + this.timeAgo(idea.updated_at || idea.created_at);
+                        
+                        // Disable save if cancelled/completed
+                        if (['completed', 'failed', 'cancelled'].includes(idea.status)) {
+                            // saveBtn.disabled = true; // Allow view but warn? Or just hide save?
+                            // Actually user might want to edit content even if completed for notes?
+                            // Let's stick to API logic. 
+                        }
+                    }
+                } else {
+                    title.textContent = '新建想法';
+                    editActions.classList.add('hidden');
+                }
+                
+                // Animate in
+                requestAnimationFrame(() => {
+                    backdrop.classList.remove('opacity-0');
+                    sheet.classList.remove('translate-y-full', 'opacity-0', 'scale-95'); 
+                    // md styles handle opacity/scale, mobile handles translate
+                });
+                
+                textarea.focus();
+            },
+            
+            closeEditor() {
+                const modal = document.getElementById('editor-modal');
+                const sheet = document.getElementById('editor-sheet');
+                const backdrop = document.getElementById('editor-backdrop');
+                
+                backdrop.classList.add('opacity-0');
+                sheet.classList.add('translate-y-full'); // Mobile
+                if (window.innerWidth >= 768) {
+                     sheet.classList.add('opacity-0', 'scale-95'); // Desktop
+                }
+                
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    this.state.currentId = null;
+                }, 300);
+            },
+            
+            async saveIdea() {
+                const content = document.getElementById('idea-content').value.trim();
+                if (!content) return;
+                
+                const btn = document.getElementById('save-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '保存中...';
+                btn.disabled = true;
+                
+                let res;
+                if (this.state.currentId) {
+                    res = await this.api(`/ideas/${this.state.currentId}`, 'PUT', { content });
+                } else {
+                    res = await this.api('/ideas', 'POST', { content });
+                }
+                
+                if (res) {
+                    this.showToast('保存成功');
+                    this.closeEditor();
+                    this.loadIdeas();
+                } else {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            },
+            
+            async confirmDelete() {
+                if (!this.state.currentId) return;
+                if (!confirm('确定要取消/删除这个想法吗？')) return;
+                
+                const res = await this.api(`/ideas/${this.state.currentId}/cancel`, 'POST');
+                if (res) {
+                    this.showToast('想法已取消');
+                    this.closeEditor();
+                    this.loadIdeas();
+                }
+            },
+            
+            logout() {
+                localStorage.removeItem('ideas_token');
+                window.location.href = '/login';
+            },
+            
+            refresh() {
+                const list = document.getElementById('idea-list');
+                list.innerHTML = `
+                    <li class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 animate-pulse"><div class="h-4 bg-gray-200 rounded w-3/4 mb-3"></div><div class="h-5 bg-gray-200 rounded-full w-16"></div></li>
+                    <li class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/2 mb-3"></div><div class="h-5 bg-gray-200 rounded-full w-16"></div></li>
+                `;
+                this.loadIdeas();
+            },
+            
+            timeAgo(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+                
+                if (seconds < 60) return '刚刚';
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes}分钟前`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours}小时前`;
+                const days = Math.floor(hours / 24);
+                if (days < 30) return `${days}天前`;
+                return date.toLocaleDateString('zh-CN');
+            },
+            
+            escapeHtml(unsafe) {
+                return unsafe
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            },
+            
+            showToast(msg, isError = false) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.className = `fixed top-24 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300 pointer-events-none z-50 text-sm ${isError ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'}`;
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 3000);
+            }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => app.init());
+        
+        // Pull to refresh simulation (simplified)
+        let touchStart = 0;
+        window.addEventListener('touchstart', e => touchStart = e.touches[0].clientY);
+        window.addEventListener('touchend', e => {
+            const touchEnd = e.changedTouches[0].clientY;
+            if (window.scrollY === 0 && touchEnd > touchStart + 150) {
+                app.refresh();
+            }
+        });
+    </script>
+</body>
+</html>

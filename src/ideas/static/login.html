@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ideas Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Glass effect enhancement */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Custom scrollbar hide */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Smooth input transition */
+        .input-field {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#667eea] to-[#764ba2] min-h-screen flex items-center justify-center p-4 sm:p-6 antialiased selection:bg-purple-200 selection:text-purple-900">
+
+    <!-- Background Decorative Elements -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="animation-delay: 0s;"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="w-full max-w-md glass-card rounded-2xl shadow-2xl relative z-10 overflow-hidden transform transition-all duration-300">
+        
+        <!-- Header Section -->
+        <div class="px-8 pt-10 pb-6 text-center">
+            <div class="inline-block p-3 rounded-full bg-purple-50 mb-4 shadow-sm">
+                <svg class="w-8 h-8 text-[#764ba2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 mb-2">
+                Ideas
+            </h1>
+            <p class="text-gray-500 text-sm">
+                捕捉灵感，记录想法
+            </p>
+        </div>
+
+        <!-- Form Section -->
+        <div class="px-8 pb-10">
+            <form id="loginForm" class="space-y-6">
+                
+                <!-- Error Message (Hidden by default) -->
+                <div id="errorMessage" class="hidden transform transition-all duration-300 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700 font-medium" id="errorText">登录失败，请重试</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Username -->
+                <div class="group">
+                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-1 ml-1">用户名</label>
+                    <div class="relative">
+                        <input type="text" id="username" name="username" required 
+                            class="input-field appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#667eea] focus:border-transparent bg-gray-50 focus:bg-white sm:text-sm text-gray-900"
+                            placeholder="输入您的用户名">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1 ml-1">密码</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required 
+                            class="input-field appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#667eea] focus:border-transparent bg-gray-50 focus:bg-white sm:text-sm text-gray-900"
+                            placeholder="输入您的密码">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" id="submitBtn" 
+                        class="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-[#667eea] to-[#764ba2] hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#667eea] shadow-lg transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        
+                        <!-- Loading Spinner -->
+                        <span id="loadingIcon" class="hidden absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                        
+                        <span id="btnText">登 录</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer / Decorative Bottom -->
+        <div class="px-8 py-4 bg-gray-50 border-t border-gray-100 flex justify-center">
+            <p class="text-xs text-gray-400 font-medium">
+                Protected by Ideas Security
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingIcon = document.getElementById('loadingIcon');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        // Input animation focus handlers for extra polish
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.parentElement.classList.add('scale-[1.01]', 'transition-transform');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+
+        // Toggle Loading State
+        const setLoading = (isLoading) => {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                loadingIcon.classList.remove('hidden');
+                btnText.textContent = '登录中...';
+                errorMessage.classList.add('hidden');
+            } else {
+                submitBtn.disabled = false;
+                loadingIcon.classList.add('hidden');
+                btnText.textContent = '登 录';
+            }
+        };
+
+        // Show Error
+        const showError = (message) => {
+            errorText.textContent = message || '用户名或密码错误';
+            errorMessage.classList.remove('hidden');
+            // Add shake animation to card
+            const card = document.querySelector('.glass-card');
+            card.classList.remove('animate-shake');
+            void card.offsetWidth; // trigger reflow
+            card.classList.add('animate-shake');
+        };
+
+        // Handle Submit
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = loginForm.username.value;
+            const password = loginForm.password.value;
+
+            if (!username || !password) return;
+
+            setLoading(true);
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // Success
+                    localStorage.setItem('ideas_token', data.access_token);
+                    // Add success animation/feedback before redirect
+                    btnText.textContent = '登录成功!';
+                    submitBtn.classList.remove('from-[#667eea]', 'to-[#764ba2]');
+                    submitBtn.classList.add('bg-green-500', 'from-green-500', 'to-green-600');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 500);
+                } else {
+                    // Error
+                    showError(data.detail || '登录失败，请检查用户名和密码');
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                showError('连接服务器失败，请稍后重试');
+            } finally {
+                if (!localStorage.getItem('ideas_token')) {
+                    setLoading(false);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
