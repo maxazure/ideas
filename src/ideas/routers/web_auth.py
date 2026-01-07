@@ -94,7 +94,7 @@ async def get_me(username: str = Depends(get_current_user)):
     return UserInfo(username=username)
 
 
-@router.post("/verify")
+@router.get("/verify")
 async def verify(username: str = Depends(get_current_user)):
     """Verify if token is still valid."""
     return {"valid": True, "username": username}
