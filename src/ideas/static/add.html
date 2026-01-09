@@ -57,7 +57,11 @@
                     <span id="updated-time" class="text-sm text-gray-600">-</span>
                 </div>
                 <hr class="my-4 border-gray-100">
-                <button onclick="confirmCancel()" class="w-full py-3 text-red-500 font-medium bg-red-50 rounded-xl hover:bg-red-100 active:scale-[0.98] transition-all">
+                <!-- Execute Button (only shown for draft status) -->
+                <button id="execute-btn" onclick="executeIdea()" class="hidden w-full py-3 text-white font-medium bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-xl hover:opacity-90 active:scale-[0.98] transition-all mb-3">
+                    🚀 提交执行
+                </button>
+                <button id="cancel-btn" onclick="confirmCancel()" class="w-full py-3 text-red-500 font-medium bg-red-50 rounded-xl hover:bg-red-100 active:scale-[0.98] transition-all">
                     取消此想法
                 </button>
             </div>
@@ -150,6 +154,22 @@
                 document.getElementById('idea-status').className = `text-sm font-medium px-3 py-1 rounded-full ${getStatusColor(data.status)}`;
                 document.getElementById('created-time').textContent = formatTime(data.created_at);
                 document.getElementById('updated-time').textContent = formatTime(data.updated_at || data.created_at);
+                
+                // Show execute button only for draft status
+                const executeBtn = document.getElementById('execute-btn');
+                const cancelBtn = document.getElementById('cancel-btn');
+                if (data.status === 'draft') {
+                    executeBtn.classList.remove('hidden');
+                    cancelBtn.classList.remove('hidden');
+                } else if (['completed', 'failed', 'cancelled'].includes(data.status)) {
+                    // Terminal states - hide both buttons
+                    executeBtn.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                } else {
+                    // Active states (pending, executing, etc.) - only show cancel
+                    executeBtn.classList.add('hidden');
+                    cancelBtn.classList.remove('hidden');
+                }
             }
         }
 
@@ -177,6 +197,27 @@
 
             if (res) {
                 showToast('保存成功');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            }
+        }
+
+        async function executeIdea() {
+            if (!currentId) return;
+            
+            // First save any content changes
+            const content = document.getElementById('idea-content').value.trim();
+            if (content && content !== currentIdea.content) {
+                const saveRes = await api(`/ideas/${currentId}`, 'PUT', { content });
+                if (!saveRes) return;
+            }
+            
+            if (!confirm('确定要提交这个想法执行吗？提交后将进入待处理队列。')) return;
+
+            const res = await api(`/ideas/${currentId}/execute`, 'POST');
+            if (res) {
+                showToast('已提交执行！');
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 500);

@@ -69,8 +69,25 @@
         </div>
     </header>
 
+    <!-- Tab Navigation -->
+    <nav class="fixed top-14 left-0 right-0 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <div class="max-w-2xl mx-auto px-4">
+            <div class="flex space-x-1 py-2">
+                <button onclick="app.switchTab('active')" id="tab-active" class="tab-btn flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all bg-indigo-100 text-indigo-700">
+                    有效的
+                </button>
+                <button onclick="app.switchTab('completed')" id="tab-completed" class="tab-btn flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all text-gray-500 hover:bg-gray-100">
+                    已完成
+                </button>
+                <button onclick="app.switchTab('cancelled')" id="tab-cancelled" class="tab-btn flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all text-gray-500 hover:bg-gray-100">
+                    已取消
+                </button>
+            </div>
+        </div>
+    </nav>
+
     <!-- Main Content -->
-    <main class="pt-20 px-4 max-w-2xl mx-auto min-h-screen" id="main-content">
+    <main class="pt-32 px-4 max-w-2xl mx-auto min-h-screen" id="main-content">
         <!-- Ideas List -->
         <ul id="idea-list" class="space-y-4">
             <!-- Loading Skeleton -->
@@ -141,7 +158,8 @@
             state: {
                 ideas: [],
                 currentId: null,
-                token: localStorage.getItem('ideas_token')
+                token: localStorage.getItem('ideas_token'),
+                currentTab: 'active'  // 'active', 'completed', 'cancelled'
             },
             
             async init() {
@@ -198,9 +216,42 @@
                 
                 const data = await this.api('/ideas');
                 if (data) {
-                    this.state.ideas = data;
-                    this.renderList();
+                    this.state.allIdeas = data;
+                    this.filterAndRenderList();
                 }
+            },
+            
+            switchTab(tab) {
+                this.state.currentTab = tab;
+                // Update tab styles
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                    btn.classList.add('text-gray-500', 'hover:bg-gray-100');
+                });
+                const activeTab = document.getElementById(`tab-${tab}`);
+                activeTab.classList.remove('text-gray-500', 'hover:bg-gray-100');
+                activeTab.classList.add('bg-indigo-100', 'text-indigo-700');
+                this.filterAndRenderList();
+            },
+            
+            filterAndRenderList() {
+                const allIdeas = this.state.allIdeas || [];
+                const tab = this.state.currentTab;
+                
+                // Define which statuses belong to each tab
+                const activeStatuses = ['draft', 'pending', 'claimed', 'executing', 'waiting_user', 'waiting_agent', 'failed'];
+                const completedStatuses = ['completed'];
+                const cancelledStatuses = ['cancelled'];
+                
+                if (tab === 'active') {
+                    this.state.ideas = allIdeas.filter(idea => activeStatuses.includes(idea.status));
+                } else if (tab === 'completed') {
+                    this.state.ideas = allIdeas.filter(idea => completedStatuses.includes(idea.status));
+                } else if (tab === 'cancelled') {
+                    this.state.ideas = allIdeas.filter(idea => cancelledStatuses.includes(idea.status));
+                }
+                
+                this.renderList();
             },
             
             renderList() {
